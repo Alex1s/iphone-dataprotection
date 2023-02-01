@@ -158,7 +158,7 @@ class Keychain(object):
         for p in self.get_inet_passwords():
             addr = "?"
             if p.has_key("srvr"):
-                addr = p["srvr"] + ":" + str(p["port"])
+                addr = p["srvr"] + ":" + str("NOPORT" if p.get("port") is None else p["port"])
             row = [addr,
                    str(p.get("acct","?")),
                    self.sanitize(p.get("data","?"))[:20],
@@ -178,7 +178,7 @@ class Keychain(object):
                 subject = get_CN_from_der_cert(row["data"])
                 if not subject:
                     subject = "cn_unknown_%d" % row["rowid"]
-                c[hashlib.sha1(str(row["pkhh"])).hexdigest() + row["agrp"]] = subject
+                c[hashlib.sha1(str("NOpkhh" if row.get("pkhh") is None else row["pkhh"])).hexdigest() + row["agrp"]] = subject
             row = [str(row["rowid"]), 
                    subject[:81],
                    row.get("agrp","?")[:31],
