@@ -1,6 +1,6 @@
-[submodule "iPhoneOS7.1.sdk"]
-	path = iPhoneOS7.1.sdk
-	url = https://github.com/Alex1s/iPhoneOS7.1.sdk
 [submodule "xpwn"]
 	path = xpwn
 	url = https://github.com/planetbeing/xpwn.git
+[submodule "iPhoneOS6.0.sdk"]
+	path = iPhoneOS6.0.sdk
+	url = https://github.com/Alex1s/iPhoneOS6.0.sdk.git
