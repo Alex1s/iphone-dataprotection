@@ -153,77 +153,15 @@ char bootargs[256]={0};
 
 int main(int argc, char* argv[])
 {
-    int i;
-    int nandReadOnly=0;
-    struct stat st;
-    
     printf("Starting ramdisk tool\n");
     printf("Compiled " __DATE__ " " __TIME__ "\n");
     printf("Revision " HGVERSION "\n");
-    
-    CFMutableDictionaryRef matching;
-    io_service_t service = 0;
-    matching = IOServiceMatching("IOWatchDogTimer");
-    if (matching == NULL) {
-        printf("unable to create matching dictionary for class IOWatchDogTimer\n");
-    }
-    
-    service = IOServiceGetMatchingService(kIOMasterPortDefault, matching);
-    if (service == 0) {
-        printf("unable to create matching dictionary for class IOWatchDogTimer\n");
-    }
-    uint32_t zero = 0;
-    CFNumberRef n = CFNumberCreate(kCFAllocatorDefault, kCFNumberIntType, &zero);
-    IORegistryEntrySetCFProperties(service, n);
-    IOObjectRelease(service);
     
     CFMutableDictionaryRef deviceInfos = CFDictionaryCreateMutable(kCFAllocatorDefault,
                                                             0,
                                                             &kCFTypeDictionaryKeyCallBacks,
                                                             &kCFTypeDictionaryValueCallBacks);	
-    
     get_device_infos(deviceInfos);
-    init_tcp();
-
-    sysctlbyname("kern.bootargs", bootargs, &bootargs_len, NULL, 0);
-    
-    if (strstr(bootargs, "nand-readonly") || strstr(bootargs, "nand-disable"))
-    {
-        printf("NAND read only mode, data partition wont be mounted\n");
-        nandReadOnly = 1;
-    }
-    else
-    {
-        printf("Waiting for data partition\n");
-        for(i=0; i < 10; i++)
-        {
-            if(!stat("/dev/disk0s2s1", &st))
-            {
-                system("/sbin/fsck_hfs  /dev/disk0s2s1");
-                break;
-            }
-            if(!stat("/dev/disk0s1s2", &st))
-            {
-                system("/sbin/fsck_hfs  /dev/disk0s1s2");
-                break;
-            }
-            if(!stat("/dev/disk0s2", &st))
-            {
-                system("/sbin/fsck_hfs  /dev/disk0s2");
-                break;
-            }
-            sleep(5);
-        }
-    }
-    init_usb(CFDictionaryGetValue(deviceInfos, CFSTR("udid")));
-    printf("USB init done\n");
-
-    system("mount /"); //make ramdisk writable
-   
-    chmod("/var/root/.ssh/authorized_keys", 0600); 
-    chown("/var/root/.ssh/authorized_keys", 0, 0); 
-    chown("/var/root/.ssh", 0, 0); 
-    chown("/var/root/", 0, 0); 
 
     printf(" #######  ##    ##\n");
     printf("##     ## ##   ## \n");
@@ -234,27 +172,6 @@ int main(int argc, char* argv[])
     printf(" #######  ##    ##\n");
     printf("iphone-dataprotection ramdisk\n");
     printf("revision: " HGVERSION " "  __DATE__ " " __TIME__ "\n");
-    
-    if(!stat(execve_params[0], &st))
-    {
-        printf("Running %s\n", execve_params[0]);
-        if((i = posix_spawn(NULL, execve_params[0], NULL, NULL, execve_params, execve_env)))
-            printf("posix_spawn(%s) returned %d\n", execve_params[0], i);
-    }
-    else
-    {
-        printf("%s is missing\n", execve_params[0]);
-    }
-    
-    /*if (nandReadOnly)
-    {*/
-        if(!stat(ioflash[0], &st))
-        {
-            printf("Running %s\n", ioflash[0]);
-            if((i = posix_spawn(NULL, ioflash[0], NULL, NULL, ioflash, execve_env)))
-                printf("posix_spawn(%s) returned %d\n", execve_params[0], i);
-        }
-    /*}*/
     
     CFMutableDictionaryRef handlers = CFDictionaryCreateMutable(kCFAllocatorDefault, 0, &kCFTypeDictionaryKeyCallBacks, NULL);
     CFDictionaryAddValue(handlers, CFSTR("DeviceInfo"), device_info);
